@@ -16,6 +16,9 @@ runs:
   env:
     INFRA_DIR: ${{ inputs.infra_dir }}
     OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+  args:
+    - ${{ inputs.infra_dir }}
+    - --no-dash  # Add the --no-dash flag to skip launching the Dash server
 branding:
   icon: "shield"
   color: "blue"
