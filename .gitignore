@@ -1,0 +1,32 @@
+---
+
+### **3. `.gitignore`**
+To exclude unnecessary files from your repository.
+
+```plaintext
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# history
+.history/
+# Docker-related
+*.env
+docker-compose.override.yml
+
+# Python-related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Node.js (if ever used)
+node_modules/
+
+# Secrets
+secrets.json

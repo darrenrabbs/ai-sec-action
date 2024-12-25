@@ -1,0 +1,19 @@
+name: "AI Sec Linter"
+description: "Run the AI Sec linter for Terraform and Kubernetes configurations."
+author: "Darren Rabbitt"
+inputs:
+  infra_dir:
+    description: "Path to the infrastructure directory to lint."
+    required: true
+  openai_api_key:
+    description: "OpenAI API key for AI Sec."
+    required: true
+runs:
+  using: "docker"
+  image: "darrendev80/ai_sec:latest" # Replace this with your Docker Hub image name
+  args:
+    - ${{ inputs.infra_dir }}
+    - ${{ inputs.openai_api_key }}
+branding:
+  icon: "shield"
+  color: "blue"
