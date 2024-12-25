@@ -10,7 +10,7 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "darrendev80/ai_sec:latest" # Replace this with your Docker Hub image name
+  image: "docker://darrendev80/ai_sec:latest"
   args:
     - ${{ inputs.infra_dir }}
     - ${{ inputs.openai_api_key }}
