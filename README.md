@@ -13,32 +13,37 @@ To use this action, include it in your GitHub workflows.
 ### Example Workflow
 
 ```yaml
-name: Run AI Sec Linter
+name: "Run AI Sec"
 
 on:
+  workflow_dispatch: # Allows manual triggering of the workflow
   push:
     branches:
-      - main
+      - gitactions_test
     paths:
       - "tests/terraform/**"
   pull_request:
     branches:
-      - main
+      - gitactions_test
     paths:
       - "tests/terraform/**"
 
 jobs:
-  lint:
+  run-ai-sec:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
+
+      # Step 3: Run AI Sec Linter
       - name: Run AI Sec Linter
-        uses: darrendev80/ai-sec-action@v1
+        uses: ./.github/actions/ai_sec
         with:
-          infra_dir: "./path/to/infra"
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-          upload_artifact: "true"
+          infra_dir: "${{ github.workspace }}/tests/terraform"
+          config_path: "${{ github.workspace }}/config/config.yaml"
+          fail_on_high: "true"
 ```
 
 ### Inputs
