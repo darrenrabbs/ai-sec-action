@@ -18,13 +18,14 @@ runs:
       run: |
         mkdir -p reports
         docker run --rm \
-          -e INFRA_DIR="/app/infra" \
+          -e INFRA_DIR="${{ inputs.infra_dir }}" \
           -e OPENAI_API_KEY="${{ inputs.openai_api_key }}" \
-          -v "${{ inputs.infra_dir }}:/app/infra:ro" \
+          -e AI_SEC_NO_DASH=true \
           -v "${PWD}/reports:/app/reports" \
-          darrendev80/ai_sec:latest --no-dash
+          -v "${{ inputs.infra_dir }}:/app/infra:ro" \
+          darrendev80/ai_sec:latest
     - name: Upload Report as Artifact
-      if: always() # Ensure this step runs even if the linter fails
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: ai-sec-report
