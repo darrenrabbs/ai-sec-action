@@ -9,16 +9,12 @@ inputs:
   openai_api_key:
     description: "OpenAI API key for AI Sec."
     required: true
-  upload_artifact:
-    description: "Upload the generated report as an artifact."
-    required: false
-    default: "false"
 
 runs:
   using: "composite"
   steps:
-    # Step 1: Run the AI Sec Linter in No Dash Mode
     - name: Run AI Sec Linter
+      shell: bash
       run: |
         mkdir -p reports
         docker run --rm \
@@ -26,10 +22,8 @@ runs:
           -e OPENAI_API_KEY="${{ inputs.openai_api_key }}" \
           -v "${PWD}/reports:/app/reports" \
           darrendev80/ai_sec:latest --no-dash
-
-    # Step 2: Conditionally upload the report as an artifact
     - name: Upload Report as Artifact
-      if: ${{ inputs.upload_artifact == 'true' }}
+      if: always() # Ensure this step runs even if the linter fails
       uses: actions/upload-artifact@v3
       with:
         name: ai-sec-report
