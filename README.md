@@ -19,6 +19,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "tests/terraform/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tests/terraform/**"
 
 jobs:
   lint:
@@ -31,6 +38,7 @@ jobs:
         with:
           infra_dir: "./path/to/infra"
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          upload_artifact: "true"
 ```
 
 ### Inputs

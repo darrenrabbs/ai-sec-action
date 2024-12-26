@@ -9,36 +9,28 @@ inputs:
   openai_api_key:
     description: "OpenAI API key for AI Sec."
     required: true
+  upload_artifact:
+    description: "Upload the generated report as an artifact."
+    required: false
+    default: "false"
 
 runs:
-  using: "docker"
-  image: "docker://darrendev80/ai_sec:latest"
-  env:
-    INFRA_DIR: ${{ inputs.infra_dir }}
-    OPENAI_API_KEY: ${{ inputs.openai_api_key }}
-  args:
-    - /bin/bash
-    - -c
-    - |
-      # Install ngrok
-      curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
-      echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list && \
-      apt update && apt install -y ngrok
+  using: "composite"
+  steps:
+    # Step 1: Run the AI Sec Linter in No Dash Mode
+    - name: Run AI Sec Linter
+      run: |
+        mkdir -p reports
+        docker run --rm \
+          -e INFRA_DIR="${{ inputs.infra_dir }}" \
+          -e OPENAI_API_KEY="${{ inputs.openai_api_key }}" \
+          -v "${PWD}/reports:/app/reports" \
+          darrendev80/ai_sec:latest --no-dash
 
-      # Start ngrok to expose port 8050
-      nohup ngrok http 8050 &
-
-      # Wait for ngrok to initialize
-      sleep 5
-
-      # Fetch the ngrok public URL
-      NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
-      echo "Dash server is accessible at: $NGROK_URL"
-
-      # Run the Dash server for a limited time
-      timeout 300 python3 -m ai_sec.reporting.dashboard --host 0.0.0.0 --port 8050
-
-      echo "Dash server has stopped."
-branding:
-  icon: "shield"
-  color: "blue"
+    # Step 2: Conditionally upload the report as an artifact
+    - name: Upload Report as Artifact
+      if: ${{ inputs.upload_artifact == 'true' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ai-sec-report
+        path: reports/report.json
