@@ -30,7 +30,7 @@ runs:
       uses: docker://darrendev80/ai_sec:latest
       env:
         INFRA_DIR: "${{ inputs.infra_dir }}"
-        OPENAI_API_KEY: "${{ secrets.openai_api_key }}"
+        OPENAI_API_KEY: "${{ secrets.OPENAI_API_TOKEN || '' }}"
         CONFIG_FILE: "${{ inputs.config_path }}"
         AI_SEC_NO_DASH: "true"
       with:
