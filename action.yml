@@ -30,6 +30,14 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Restore AI Response Cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.ai_sec/openai_cache.json
+        key: ${{ runner.os }}-ai-sec-cache-${{ hashFiles('~/.ai_sec/openai_cache.json') }}
+        restore-keys: |
+          ${{ runner.os }}-ai-sec-cache-
+
     - name: Run AI Sec Linter
       uses: docker://darrendev80/ai_sec:latest
       env:
@@ -51,6 +59,13 @@ runs:
         path: |
           reports/report.json
           reports/summary_report.json
+
+    - name: Save AI Response Cache
+      if: success()
+      uses: actions/cache@v3
+      with:
+        path: ~/.ai_sec/openai_cache.json
+        key: ${{ runner.os }}-ai-sec-cache-${{ hashFiles('~/.ai_sec/openai_cache.json') }}
 
     - name: Analyze Report (Local Testing)
       run: |
