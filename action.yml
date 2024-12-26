@@ -18,8 +18,9 @@ runs:
       run: |
         mkdir -p reports
         docker run --rm \
-          -e INFRA_DIR="${{ inputs.infra_dir }}" \
+          -e INFRA_DIR="/app/infra" \
           -e OPENAI_API_KEY="${{ inputs.openai_api_key }}" \
+          -v "${{ inputs.infra_dir }}:/app/infra:ro" \
           -v "${PWD}/reports:/app/reports" \
           darrendev80/ai_sec:latest --no-dash
     - name: Upload Report as Artifact
