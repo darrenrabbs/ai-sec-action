@@ -43,7 +43,7 @@ runs:
       env:
         INFRA_DIR: "${{ inputs.infra_dir }}"
         CONFIG_FILE: "${{ inputs.config_path }}"
-        OPENAI_API_TOKEN: "${{ inputs.openai_api_token }}"
+        OPENAI_API_KEY: "${{ inputs.openai_api_token }}"
         AI_SEC_NO_DASH: "true"
       with:
         args: |
