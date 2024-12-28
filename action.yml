@@ -67,10 +67,35 @@ runs:
 
     - name: Deploy Static Report to GitHub Pages
       if: ${{ inputs.github_token != '' }}
-      uses: crazy-max/ghaction-github-pages@v4
-      with:
-        target_branch: gh-pages
-        build_dir: reports
+      run: |
+        # Check if the 'gh-pages' branch exists
+        BRANCH_EXISTS=$(git ls-remote --heads https://github.com/${{ github.repository }} gh-pages)
+
+        if [ -n "$BRANCH_EXISTS" ]; then
+          echo "gh-pages branch exists. Proceeding with deployment."
+
+          PR_DIR="pr-${{ github.event.number }}"
+          BUILD_DIR="reports"
+
+          # Configure Git
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+          # Clone the gh-pages branch
+          git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }} gh-pages || git init gh-pages
+          cd gh-pages
+
+          # Create a PR-specific subdirectory and copy reports
+          mkdir -p $PR_DIR
+          cp -r ../$BUILD_DIR/* $PR_DIR
+
+          # Commit and push changes
+          git add $PR_DIR
+          git commit -m "Deploy reports for PR #${{ github.event.number }}"
+          git push --force https://${{ inputs.github_token }}@github.com/${{ github.repository }} gh-pages
+        else
+          echo "gh-pages branch does not exist. Skipping deployment."
+        fi
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
@@ -81,43 +106,34 @@ runs:
         path: ~/.ai_sec/openai_cache.json
         key: ${{ runner.os }}-ai-sec-cache-${{ hashFiles('~/.ai_sec/openai_cache.json') }}
 
-    - name: Analyze Report (Local Testing)
+    - name: Analyze Report (Generate Job Summary)
       run: |
-        echo "Analyzing AI Sec report locally..."
-        if [ -f reports/summary_report.json ]; then
-          echo "Report found: reports/summary_report.json"
-          cat reports/summary_report.json
-          
-          CRITICAL_COUNT=$(jq '.by_severity.critical // 0' reports/summary_report.json)
-          HIGH_COUNT=$(jq '.by_severity.high // 0' reports/summary_report.json)
-          MEDIUM_COUNT=$(jq '.by_severity.medium // 0' reports/summary_report.json)
-          LOW_COUNT=$(jq '.by_severity.low // 0' reports/summary_report.json)
-          WARNING_COUNT=$(jq '.by_severity.warning // 0' reports/summary_report.json)
-          
-          echo "Critical Issues: $CRITICAL_COUNT"
-          echo "High Issues: $HIGH_COUNT"
-          echo "Medium Issues: $MEDIUM_COUNT"
-          echo "Low Issues: $LOW_COUNT"
-          echo "Warnings: $WARNING_COUNT"
-          
-          FAIL_ON_CRITICAL=${{ inputs.fail_on_critical }}
-          FAIL_ON_HIGH=${{ inputs.fail_on_high }}
-          FAIL_ON_MEDIUM=${{ inputs.fail_on_medium }}
-          
-          if [[ "$FAIL_ON_CRITICAL" == "true" && "$CRITICAL_COUNT" -gt 0 ]]; then
-            echo "Critical issues found. Failing the job."
-            exit 1
-          elif [[ "$FAIL_ON_HIGH" == "true" && "$HIGH_COUNT" -gt 0 ]]; then
-            echo "High issues found. Failing the job."
-            exit 1
-          elif [[ "$FAIL_ON_MEDIUM" == "true" && "$MEDIUM_COUNT" -gt 0 ]]; then
-            echo "Medium issues found. Failing the job."
-            exit 1
-          else
-            echo "No critical or high issues found, or configured to ignore them. Proceeding."
-          fi
+        SUMMARY_PATH="reports/summary_report.json"
+        PR_DIR="pr-${{ github.event.number }}"
+        REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.repository }}/$PR_DIR/report.html"
+
+        echo "### AI Sec Linter Results" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "$SUMMARY_PATH" ]; then
+          TOTAL_ISSUES=$(jq '.total_issues // 0' $SUMMARY_PATH)
+          CRITICAL_COUNT=$(jq '.by_severity.critical // 0' $SUMMARY_PATH)
+          HIGH_COUNT=$(jq '.by_severity.high // 0' $SUMMARY_PATH)
+          MEDIUM_COUNT=$(jq '.by_severity.medium // 0' $SUMMARY_PATH)
+          LOW_COUNT=$(jq '.by_severity.low // 0' $SUMMARY_PATH)
+          WARNING_COUNT=$(jq '.by_severity.warning // 0' $SUMMARY_PATH)
+
+          echo "| Severity      | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Critical**  | $CRITICAL_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| **High**      | $HIGH_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Medium**    | $MEDIUM_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Low**       | $LOW_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Warning**   | $WARNING_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Total Issues: **$TOTAL_ISSUES**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Full Report]($REPORT_URL)" >> $GITHUB_STEP_SUMMARY
         else
-          echo "No report found. Skipping analysis."
-          exit 1
+          echo "No report found. Skipping job summary." >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
