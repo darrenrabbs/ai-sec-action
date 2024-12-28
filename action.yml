@@ -1,5 +1,5 @@
 name: "AI Sec Linter"
-description: "Run the AI Sec linter for Terraform and Kubernetes configurations."
+description: "Run the AI Sec linter for Terraform and Kubernetes configurations to identify security issues."
 author: "Darren Rabbitt"
 
 inputs:
