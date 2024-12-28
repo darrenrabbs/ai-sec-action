@@ -59,6 +59,17 @@ runs:
         path: |
           reports/report.json
           reports/summary_report.json
+          reports/report.html
+
+    - name: Deploy Static Report to GitHub Pages
+      if: ${{ !env.ACT }}
+      uses: crazy-max/ghaction-github-pages@v4
+      with:
+        target_branch: gh-pages
+        build_dir: reports
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
     - name: Save AI Response Cache
       if: success()
