@@ -68,7 +68,7 @@ runs:
     - name: Deploy Static Report to GitHub Pages
       if: ${{ inputs.github_token != '' }}
       run: |
-        # Determine the branch-specific directory
+        # Determine branch-specific directory
         BRANCH_DIR="${{ github.head_ref }}"
         if [ -z "$BRANCH_DIR" ]; then
           BRANCH_DIR="${{ github.ref_name }}"
@@ -122,7 +122,7 @@ runs:
         fi
         REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/$BRANCH_DIR/report.html"
 
-        echo "### AI Sec Linter Results" >> $GITHUB_STEP_SUMMARY
+        echo "## AI Sec Linter Results 🚀" >> $GITHUB_STEP_SUMMARY
 
         if [ -f "$SUMMARY_PATH" ]; then
           TOTAL_ISSUES=$(jq '.total_issues // 0' $SUMMARY_PATH)
@@ -134,15 +134,15 @@ runs:
 
           echo "| Severity      | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|---------------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Critical**  | $CRITICAL_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| **High**      | $HIGH_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Medium**    | $MEDIUM_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Low**       | $LOW_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Warning**   | $WARNING_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛑 **Critical** | $CRITICAL_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 **High**     | $HIGH_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 **Medium**   | $MEDIUM_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔵 **Low**      | $LOW_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚪ **Warning**  | $WARNING_COUNT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Total Issues: **$TOTAL_ISSUES**" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Issues:** $TOTAL_ISSUES" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[View Full Report]($REPORT_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "[⬇️ View Full Report]($REPORT_URL)" >> $GITHUB_STEP_SUMMARY
         else
           echo "No report found. Skipping job summary." >> $GITHUB_STEP_SUMMARY
         fi
