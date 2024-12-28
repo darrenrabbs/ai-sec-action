@@ -68,34 +68,26 @@ runs:
     - name: Deploy Static Report to GitHub Pages
       if: ${{ inputs.github_token != '' }}
       run: |
-        # Check if the 'gh-pages' branch exists
-        BRANCH_EXISTS=$(git ls-remote --heads https://github.com/${{ github.repository }} gh-pages)
+        PR_DIR="pr-${{ github.event.number }}"
+        BUILD_DIR="reports"
+        
+        # Configure Git
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        
+        # Clone the gh-pages branch
+        git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }} gh-pages || git init gh-pages
+        cd gh-pages
 
-        if [ -n "$BRANCH_EXISTS" ]; then
-          echo "gh-pages branch exists. Proceeding with deployment."
-
-          PR_DIR="pr-${{ github.event.number }}"
-          BUILD_DIR="reports"
-
-          # Configure Git
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-
-          # Clone the gh-pages branch
-          git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }} gh-pages || git init gh-pages
-          cd gh-pages
-
-          # Create a PR-specific subdirectory and copy reports
-          mkdir -p $PR_DIR
-          cp -r ../$BUILD_DIR/* $PR_DIR
-
-          # Commit and push changes
-          git add $PR_DIR
-          git commit -m "Deploy reports for PR #${{ github.event.number }}"
-          git push --force https://${{ inputs.github_token }}@github.com/${{ github.repository }} gh-pages
-        else
-          echo "gh-pages branch does not exist. Skipping deployment."
-        fi
+        # Create a PR-specific subdirectory and copy reports
+        mkdir -p $PR_DIR
+        cp -r ../$BUILD_DIR/* $PR_DIR
+        
+        # Commit and push changes
+        git add $PR_DIR
+        git commit -m "Deploy reports for PR #${{ github.event.number }}"
+        git push --force https://${{ inputs.github_token }}@github.com/${{ github.repository }} gh-pages
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
