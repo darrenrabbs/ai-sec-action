@@ -68,25 +68,40 @@ runs:
     - name: Deploy Static Report to GitHub Pages
       if: ${{ inputs.github_token != '' }}
       run: |
-        PR_DIR="pr-${{ github.event.number }}"
+        # Determine the branch-specific directory
+        BRANCH_DIR="${{ github.head_ref }}"
+        if [ -z "$BRANCH_DIR" ]; then
+          BRANCH_DIR="${{ github.ref_name }}"
+        fi
+
         BUILD_DIR="reports"
-        
+        BASE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+
         # Configure Git
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
-        
+
+        # Check if gh-pages branch exists
+        git ls-remote --exit-code --heads https://github.com/${{ github.repository }} gh-pages || {
+          echo "gh-pages branch does not exist. Skipping report publishing."
+          exit 0
+        }
+
         # Clone the gh-pages branch
         git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }} gh-pages || git init gh-pages
         cd gh-pages
 
-        # Create a PR-specific subdirectory and copy reports
-        mkdir -p $PR_DIR
-        cp -r ../$BUILD_DIR/* $PR_DIR
-        
+        # Create branch-specific subdirectory and copy reports
+        mkdir -p "$BRANCH_DIR"
+        cp -r "../$BUILD_DIR/"* "$BRANCH_DIR"
+
         # Commit and push changes
-        git add $PR_DIR
-        git commit -m "Deploy reports for PR #${{ github.event.number }}"
+        git add "$BRANCH_DIR"
+        git commit -m "Deploy reports for branch $BRANCH_DIR"
         git push --force https://${{ inputs.github_token }}@github.com/${{ github.repository }} gh-pages
+
+        # Output the report URL
+        echo "REPORT_URL=$BASE_URL/$BRANCH_DIR/report.html" >> $GITHUB_ENV
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
@@ -101,8 +116,11 @@ runs:
     - name: Analyze Report (Generate Job Summary)
       run: |
         SUMMARY_PATH="reports/summary_report.json"
-        PR_DIR="pr-${{ github.event.number }}"
-        REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.repository }}/$PR_DIR/report.html"
+        BRANCH_DIR="${{ github.head_ref }}"
+        if [ -z "$BRANCH_DIR" ]; then
+          BRANCH_DIR="${{ github.ref_name }}"
+        fi
+        REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/$BRANCH_DIR/report.html"
 
         echo "### AI Sec Linter Results" >> $GITHUB_STEP_SUMMARY
 
