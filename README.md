@@ -48,10 +48,13 @@ jobs:
 
 ### Inputs
 
-| Input            | Description                                   | Required | Example       |
-| ---------------- | --------------------------------------------- | -------- | ------------- |
-| `infra_dir`      | Path to the infrastructure directory to lint. | Yes      | `./infra`     |
-| `openai_api_key` | OpenAI API key for AI Sec functionality.      | Yes      | `sk-12345...` |
+| Input              | Description                                         | Required | Example                     |
+| -------------------| ------------------------------------------------------| -------- | ------------------------- |
+| `infra_dir`        | Path to the infrastructure directory to lint.         | Yes      | `./infra`                 |
+| `openai_api_key`   | OpenAI API key for AI Sec functionality.              | Yes      | `sk-12345...`             |
+| `fail_on_critical` | Defaults to true,fail the build if criticals appear   | No       | fail_on_critical: "false" |
+| `fail_on_high`     | Defaults to false,fail the build if highs appear      | No       | fail_on_high: "true"      |
+| `fail_on_medium`   | Defaults to false,fail the build if mediums appear    | No       | fail_on_medium: "true"    |
 
 ### Outputs
 

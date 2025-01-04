@@ -2,6 +2,11 @@ name: "AI Sec Linter"
 description: "Run the AI Sec linter for Terraform and Kubernetes configurations to identify security issues."
 author: "Darren Rabbitt"
 
+
+branding:
+  icon: "shield"
+  color: "blue"
+
 inputs:
   infra_dir:
     description: "Path to the infrastructure directory to lint."
